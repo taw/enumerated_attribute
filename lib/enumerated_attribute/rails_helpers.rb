@@ -64,7 +64,19 @@ if defined?(ActionView::Base)
 			module FormOptionsHelper
 				#def select
 				def enum_select(object, method, options={}, html_options={})
+				  if defined?(ActionView::Base::Tags::Select)  # Rails 4
+					select_tag = Tags::Select.new(object, method, self, [], options, html_options)
+					obj = select_tag.object
+
+					choices = []
+					if obj.respond_to?(:enums)
+						enums = obj.enums(method.to_sym)
+						choices = enums ? enums.select_options : []
+					end
+                                        Tags::Select.new(object, method, self, choices, options, html_options).render
+				  else  # Rails 3
 					InstanceTag.new(object, method, self, options.delete(:object)).to_enum_select_tag(options, html_options)
+				  end
 				end
 			end
 			
